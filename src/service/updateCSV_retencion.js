@@ -51,13 +51,13 @@ const agencyConfig = {
     dateFormat: '%d/%m/%Y' // Cambiado al formato DD/MM/YYYY
   },
   'Huerpel': {
-    fileName: 'huerpel.csv', // Modificado según requisito
-    projectId: 'base-maestra-gn', // Cambiado para usar el proyecto con acceso
-    datasetName: 'Posventa',
+    fileName: 'huerpel.csv',
+    projectId: 'base-maestra-huerpel',
+    datasetName: 'Posventas',
     tableName: 'tab_bafac_ur',
     encoding: 'utf8',
-    dateField: 'FECHA_FAC',
-    dateFormat: '%d/%m/%Y' // Cambiado al formato DD/MM/YYYY
+    dateField: 'FECHA_FACT', // Corregido según los campos que mostraste
+    dateFormat: '%d/%m/%Y'
   },
   'Gasme': {
     fileName: 'gasme.csv', // Modificado según requisito
@@ -87,7 +87,13 @@ function generateQuery(agencyName) {
   if (config.agencyFilter && config.agencyFilter.length > 0) {
     // Crear la condición IN para filtrar por agencias específicas
     const agenciesQuoted = config.agencyFilter.map(a => `'${a}'`).join(', ');
-    whereClause = `WHERE AGENCI IN (${agenciesQuoted}) OR AGENCIA IN (${agenciesQuoted})`;
+
+    // Usar AGENCIA para DelBravo, Huerpel y Sierra, AGENCI para el resto
+    if (['base-maestra-delbravo', 'base-maestra-huerpel', 'base-maestra-sierra'].includes(config.projectId)) {
+      whereClause = `WHERE AGENCIA IN (${agenciesQuoted})`;
+    } else {
+      whereClause = `WHERE AGENCI IN (${agenciesQuoted})`;
+    }
   }
 
   // Consulta SQL con filtro condicional
@@ -104,6 +110,51 @@ function generateQuery(agencyName) {
   ${whereClause}
   ORDER BY
     ${dateField} DESC`;
+}
+
+
+/**
+ * Limpia la carpeta Public eliminando todos los archivos existentes
+ * @returns {Promise<void>}
+ */
+async function limpiarCarpetaPublic() {
+  try {
+    const publicPath = path.join(__dirname, '../../public');
+    console.log(`Limpiando carpeta Public: ${publicPath}`);
+
+    // Verificar que la carpeta existe
+    if (!fs.existsSync(publicPath)) {
+      console.log('La carpeta Public no existe, creándola...');
+      fs.mkdirSync(publicPath, { recursive: true });
+      return;
+    }
+
+    // Leer todos los archivos de la carpeta
+    const archivos = fs.readdirSync(publicPath);
+    console.log(`Se encontraron ${archivos.length} archivos en la carpeta Public`);
+
+    // Eliminar cada archivo
+    let eliminados = 0;
+    let errores = 0;
+
+    for (const archivo of archivos) {
+      try {
+        const rutaArchivo = path.join(publicPath, archivo);
+        // Verificar si es un archivo (no una carpeta)
+        if (fs.statSync(rutaArchivo).isFile()) {
+          fs.unlinkSync(rutaArchivo);
+          eliminados++;
+        }
+      } catch (error) {
+        console.error(`Error al eliminar el archivo ${archivo}: ${error.message}`);
+        errores++;
+      }
+    }
+
+    console.log(`✅ Carpeta Public limpiada: ${eliminados} archivos eliminados, ${errores} errores`);
+  } catch (error) {
+    console.error('Error al limpiar la carpeta Public:', error);
+  }
 }
 
 /**
@@ -271,7 +322,6 @@ async function updateAgencyCSV(agencyName) {
       const backupQuery = `
         SELECT *
         FROM \`${config.projectId}.${config.datasetName}.${config.tableName}\`
-        LIMIT 1000
       `;
 
       console.log(`Reintentando con consulta más simple para ${agencyName}...`);
@@ -388,23 +438,23 @@ async function updateAgencyCSV(agencyName) {
     if (fs.existsSync(csvPath)) {
       const fileStats = fs.statSync(csvPath);
       const fileSizeMB = fileStats.size / (1024 * 1024);
-      
+
       // Si el archivo es mayor a 50MB, dividirlo
       if (fileSizeMB > 50) {
         console.log(`El archivo ${config.fileName} es grande (${fileSizeMB.toFixed(2)}MB). Dividiéndolo...`);
         const baseName = path.basename(config.fileName, path.extname(config.fileName));
         const outputPrefix = path.join(__dirname, '../../public', baseName);
-        
+
         try {
           await splitCSVFile(csvPath, outputPrefix);
           console.log(`Archivo dividido en fragmentos: ${outputPrefix}_N.csv`);
-          
+
           // Comprimir los fragmentos
           const fragmentDir = path.dirname(outputPrefix);
           const fragmentBaseName = path.basename(outputPrefix);
           const fragmentFiles = fs.readdirSync(fragmentDir)
             .filter(file => file.startsWith(fragmentBaseName) && file.endsWith('.csv'));
-          
+
           for (const fragmentFile of fragmentFiles) {
             const fragmentPath = path.join(fragmentDir, fragmentFile);
             try {
@@ -466,6 +516,9 @@ async function updateAgencyCSV(agencyName) {
  * @returns {Promise<Object>} - Resultados de todas las operaciones
  */
 async function updateAllCSVs() {
+  // Limpiamos la carpeta Public antes de comenzar
+  await limpiarCarpetaPublic();
+
   const agencies = Object.keys(agencyConfig);
   const results = {};
 
