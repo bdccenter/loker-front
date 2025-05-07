@@ -1,5 +1,7 @@
 import Papa from 'papaparse';
 import { AgenciaNombre } from './components/AgenciaSelector';
+import pako from 'pako';
+
 
 // Interfaz ClienteCSV (sin cambios)
 export interface ClienteCSV {
@@ -411,13 +413,12 @@ const mapearClienteCSVaCliente = (clienteCSV: ClienteCSV, index: number): Client
 };
 
 // Función para cargar los datos completos del CSV con mejor manejo de errores
+// Función para cargar los datos completos del CSV con mejor manejo de errores
 const cargarDatosCSVCompleto = async (intentos = 3): Promise<void> => {
   if (clientesDataCache && archivoActual === archivoActual) {
     console.log('Usando datos en caché');
     return;
   }
-
-
 
   try {
     // Verificar que tengamos un archivo actual seleccionado
@@ -438,22 +439,65 @@ const cargarDatosCSVCompleto = async (intentos = 3): Promise<void> => {
     const [nombreAgencia, config] = agenciaActual;
     console.log(`Usando configuración de agencia: ${nombreAgencia}`);
 
-    // Intentar cargar el archivo
-    const response = await fetch(archivoActual, {
-      // Añadir opción para no usar caché del navegador
-      cache: 'no-store',
-      headers: {
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache'
+    // Intentar cargar versión comprimida primero
+    const gzipPath = `${archivoActual}.gz`;
+    console.log(`Intentando cargar versión comprimida: ${gzipPath}`);
+
+    try {
+      const compressedResponse = await fetch(gzipPath, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (compressedResponse.ok) {
+        console.log("Versión comprimida encontrada, descomprimiendo...");
+        // Es un archivo comprimido
+        const compressedData = await compressedResponse.arrayBuffer();
+        const decompressedData = pako.inflate(new Uint8Array(compressedData), { to: 'string' });
+        csvTextCache = decompressedData;
+        console.log("Archivo descomprimido correctamente");
+      } else {
+        console.log("No se encontró versión comprimida, intentando con archivo normal");
+        // Intentar cargar el archivo normal
+        const response = await fetch(archivoActual, {
+          // Añadir opción para no usar caché del navegador
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error al cargar el archivo ${archivoActual}: ${response.status} - ${response.statusText}`);
+        }
+
+        // Almacenar el texto del CSV en caché
+        csvTextCache = await response.text();
       }
-    });
+    } catch (compressError) {
+      console.error("Error al intentar cargar/descomprimir:", compressError);
+      console.log("Intentando con archivo CSV normal...");
 
-    if (!response.ok) {
-      throw new Error(`Error al cargar el archivo ${archivoActual}: ${response.status} - ${response.statusText}`);
+      // Intentar cargar el archivo normal como respaldo
+      const response = await fetch(archivoActual, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al cargar el archivo ${archivoActual}: ${response.status} - ${response.statusText}`);
+      }
+
+      // Almacenar el texto del CSV en caché
+      csvTextCache = await response.text();
     }
-
-    // Almacenar el texto del CSV en caché
-    csvTextCache = await response.text();
 
     // Verificar que el contenido sea realmente un CSV
     if (csvTextCache.trim().startsWith('<!doctype html>') || csvTextCache.trim().startsWith('<html>')) {
@@ -466,8 +510,6 @@ const cargarDatosCSVCompleto = async (intentos = 3): Promise<void> => {
       console.error('El CSV parece estar vacío o corrupto');
       throw new Error('El CSV parece estar vacío o corrupto');
     }
-
-
 
     console.log('Primeros 200 caracteres del CSV:', csvTextCache.substring(0, 200));
 

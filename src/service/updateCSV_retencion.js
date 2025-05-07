@@ -3,10 +3,13 @@ import { executeQuery, saveToCSV, saveToCSVWithRetry } from './bigQueryService.j
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { splitCSVFile } from '../utils/splitCSV.js';
+import { compressCSV } from '../utils/compressCSV.js';
 
 // Obtener la ruta del archivo actual
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 // Ruta para logs
 const LOGS_DIR = path.join(__dirname, '../../logs');
@@ -29,11 +32,11 @@ const agencyConfig = {
   'Del Bravo': {
     fileName: 'delbravo.csv',
     // projectId: 'base-maestra-gn', 
-    projectId: 'base-maestra-delbravo', 
-    datasetName: 'Posventa',         
-    tableName: 'tab_bafac_ur',        
+    projectId: 'base-maestra-delbravo',
+    datasetName: 'Posventa',
+    tableName: 'tab_bafac_ur',
     encoding: 'utf8',
-    dateField: 'FECHA_FAC',           
+    dateField: 'FECHA_FAC',
     dateFormat: '%d/%m/%Y',
     // El filtro está bien definido, se aplicará a la columna AGENCI o AGENCIA de la tabla correcta
     agencyFilter: ['Acuña', 'Piedras Negras', 'Sabinas']
@@ -230,6 +233,11 @@ function standardizeColumns(data, agency) {
  * @param {string} agencyName - Nombre de la agencia a actualizar
  * @returns {Promise<Object>} - Resultado de la operación
  */
+/**
+ * Actualiza el CSV para una agencia específica
+ * @param {string} agencyName - Nombre de la agencia a actualizar
+ * @returns {Promise<Object>} - Resultado de la operación
+ */
 async function updateAgencyCSV(agencyName) {
   try {
     console.log(`Iniciando actualización de datos de retención para ${agencyName}...`);
@@ -374,6 +382,53 @@ async function updateAgencyCSV(agencyName) {
 
     // Guardar los datos en formato CSV
     const result = await saveToCSVWithRetry(config.fileName, processedData, config.encoding);
+
+    // Después de guardar el archivo, verificar su tamaño y dividirlo si es necesario
+    const csvPath = path.join(__dirname, '../../public', config.fileName);
+    if (fs.existsSync(csvPath)) {
+      const fileStats = fs.statSync(csvPath);
+      const fileSizeMB = fileStats.size / (1024 * 1024);
+      
+      // Si el archivo es mayor a 50MB, dividirlo
+      if (fileSizeMB > 50) {
+        console.log(`El archivo ${config.fileName} es grande (${fileSizeMB.toFixed(2)}MB). Dividiéndolo...`);
+        const baseName = path.basename(config.fileName, path.extname(config.fileName));
+        const outputPrefix = path.join(__dirname, '../../public', baseName);
+        
+        try {
+          await splitCSVFile(csvPath, outputPrefix);
+          console.log(`Archivo dividido en fragmentos: ${outputPrefix}_N.csv`);
+          
+          // Comprimir los fragmentos
+          const fragmentDir = path.dirname(outputPrefix);
+          const fragmentBaseName = path.basename(outputPrefix);
+          const fragmentFiles = fs.readdirSync(fragmentDir)
+            .filter(file => file.startsWith(fragmentBaseName) && file.endsWith('.csv'));
+          
+          for (const fragmentFile of fragmentFiles) {
+            const fragmentPath = path.join(fragmentDir, fragmentFile);
+            try {
+              const compressedPath = `${fragmentPath}.gz`;
+              await compressCSV(fragmentPath, compressedPath);
+              console.log(`✅ Fragmento comprimido: ${compressedPath}`);
+            } catch (error) {
+              console.error(`⚠️ Error al comprimir fragmento ${fragmentFile}: ${error.message}`);
+            }
+          }
+        } catch (splitError) {
+          console.error(`Error al dividir el archivo: ${splitError.message}`);
+        }
+      } else {
+        // Si el archivo no es muy grande, simplemente comprimirlo
+        try {
+          const compressedPath = `${csvPath}.gz`;
+          await compressCSV(csvPath, compressedPath);
+          console.log(`✅ Archivo comprimido: ${compressedPath}`);
+        } catch (compressError) {
+          console.error(`⚠️ Error al comprimir el archivo: ${compressError.message}`);
+        }
+      }
+    }
 
     return {
       agency: agencyName,
