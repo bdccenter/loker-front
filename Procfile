@@ -1,1 +1,1 @@
-web: node src/service/scheduleCSV_retencion.js & npx serve -s build -l 8080 --single
+web: node src/service/scheduleCSV_retencion.js & npx serve -s build --single
