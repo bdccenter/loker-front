@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "serve -s build",
+    "start": "node src/service/scheduleCSV_retencion.js & serve -s build",
     "update-csv": "node src/service/bigQueryService.js",
     "schedule-csv": "node src/service/scheduleCSV.js",
     "update-retencion": "node src/service/updateCSV_retencion.js --all",

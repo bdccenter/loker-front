@@ -8,17 +8,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ruta a las credenciales de BigQuery
-const CREDENTIALS_PATH = path.join(__dirname, '../../credentials/bigquery-key.json');
 // Ruta a la carpeta public donde se guardarán los archivos CSV
 const PUBLIC_PATH = path.join(__dirname, '../../public');
 
 // Verificar que el archivo de credenciales existe
-if (!fs.existsSync(CREDENTIALS_PATH)) {
-  console.error(`❌ ERROR: Archivo de credenciales no encontrado en: ${CREDENTIALS_PATH}`);
-  console.error(`Ruta completa: ${path.resolve(CREDENTIALS_PATH)}`);
-  console.error('Por favor, asegúrate de que existe el archivo de credenciales.');
-}
 
 // Asegurar que existe el directorio public
 if (!fs.existsSync(PUBLIC_PATH)) {
@@ -28,12 +21,31 @@ if (!fs.existsSync(PUBLIC_PATH)) {
   console.log(`✅ Directorio public existente en: ${PUBLIC_PATH}`);
 }
 
+const credentials = {
+  type: process.env.BQ_TYPE || "service_account",
+  project_id: process.env.BQ_PROJECT_ID,
+  private_key_id: process.env.BQ_PRIVATE_KEY_ID,
+  private_key: process.env.BQ_PRIVATE_KEY?.replace(/\\n/g, '\n'), // Importante: reemplazar \\n por \n
+  client_email: process.env.BQ_CLIENT_EMAIL,
+  client_id: process.env.BQ_CLIENT_ID,
+  auth_uri: process.env.BQ_AUTH_URI || "https://accounts.google.com/o/oauth2/auth",
+  token_uri: process.env.BQ_TOKEN_URI || "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: process.env.BQ_AUTH_PROVIDER_CERT_URL || "https://www.googleapis.com/oauth2/v1/certs",
+  client_x509_cert_url: process.env.BQ_CLIENT_CERT_URL,
+  universe_domain: process.env.BQ_UNIVERSE_DOMAIN || "googleapis.com"
+};
+
 // Instanciar el cliente de BigQuery con manejo de errores
 let bigquery;
 try {
+  // Verificar que las credenciales esenciales existen
+  if (!credentials.project_id || !credentials.private_key || !credentials.client_email) {
+    throw new Error('Faltan variables de entorno esenciales para BigQuery: BQ_PROJECT_ID, BQ_PRIVATE_KEY, BQ_CLIENT_EMAIL');
+  }
+
   bigquery = new BigQuery({
-    projectId: 'base-maestra-gn',
-    keyFilename: CREDENTIALS_PATH
+    projectId: credentials.project_id,
+    credentials: credentials
   });
   console.log('✅ Cliente BigQuery inicializado correctamente');
 } catch (error) {
@@ -127,21 +139,16 @@ async function saveToCSVWithRetry(filename, data, encoding = 'utf8', maxRetries 
 
 async function executeQuery(projectId, query) {
   try {
-    // Verificar que el archivo de credenciales existe antes de ejecutar la consulta
-    if (!fs.existsSync(CREDENTIALS_PATH)) {
-      throw new Error(`Archivo de credenciales no encontrado en: ${CREDENTIALS_PATH}`);
-    }
-
     console.log(`Ejecutando consulta en proyecto: ${projectId}`);
     console.log(`Consulta a ejecutar:\n${query}`);
 
-    // Si es necesario cambiar el proyecto
-    if (projectId !== 'base-maestra-gn') {
+    // Si es necesario cambiar el proyecto y es diferente al predeterminado
+    if (projectId && projectId !== credentials.project_id) {
       console.log(`Cambiando a proyecto: ${projectId}`);
 
       const tempBigQuery = new BigQuery({
         projectId: projectId,
-        keyFilename: CREDENTIALS_PATH
+        credentials: credentials
       });
 
       const [rows] = await tempBigQuery.query({ query });
@@ -187,7 +194,7 @@ async function exploreTables(projectId, datasetName, tableName) {
     FROM \`${projectId}.${datasetName}.${tableName}\`
     WHERE AGENCI IS NOT NULL OR AGENCIA IS NOT NULL
     ORDER BY AgencyName`;
-    
+
     const results = await executeQuery(projectId, query);
     console.log('Agencias disponibles:', results.map(r => r.AgencyName));
     return results.map(r => r.AgencyName);
@@ -322,22 +329,6 @@ async function saveToCSV(filename, data, encoding = 'utf8') {
   }
 }
 
-// Si se ejecuta directamente este archivo
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  console.log('Verificando configuración de BigQuery...');
-  console.log(`Ruta de credenciales: ${path.resolve(CREDENTIALS_PATH)}`);
-  console.log(`Directorio public: ${path.resolve(PUBLIC_PATH)}`);
 
-  if (fs.existsSync(CREDENTIALS_PATH)) {
-    console.log('✅ Archivo de credenciales encontrado');
-
-    // Mostrar información básica del archivo (sin imprimir el contenido sensible)
-    const stats = fs.statSync(CREDENTIALS_PATH);
-    console.log(`   - Tamaño: ${(stats.size / 1024).toFixed(2)} KB`);
-    console.log(`   - Última modificación: ${stats.mtime}`);
-  } else {
-    console.error('❌ Archivo de credenciales NO encontrado');
-  }
-}
 
 export { executeQuery, saveToCSV, saveToCSVWithRetry };
