@@ -31,15 +31,13 @@ const agencyConfig = {
   },
   'Del Bravo': {
     fileName: 'delbravo.csv',
-    // projectId: 'base-maestra-gn', 
     projectId: 'base-maestra-delbravo',
     datasetName: 'Posventa',
     tableName: 'tab_bafac_ur',
     encoding: 'utf8',
     dateField: 'FECHA_FAC',
-    dateFormat: '%d/%m/%Y',
-    // El filtro está bien definido, se aplicará a la columna AGENCI o AGENCIA de la tabla correcta
-    agencyFilter: ['Acuña', 'Piedras Negras', 'Sabinas']
+    dateFormat: '%d/%m/%Y'
+    // Eliminar agencyFilter
   },
   'Sierra': {
     fileName: 'sierra.csv', // Modificado según requisito
@@ -69,6 +67,8 @@ const agencyConfig = {
     dateFormat: '%d/%m/%Y' // Cambiado al formato DD/MM/YYYY
   }
 };
+
+
 
 /**
  * Genera una consulta SQL para extraer datos de la tabla de retención
