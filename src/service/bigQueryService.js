@@ -3,6 +3,8 @@ import { BigQuery } from '@google-cloud/bigquery';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config';
+
 
 // Obtener la ruta del archivo actual
 const __filename = fileURLToPath(import.meta.url);
