@@ -1359,8 +1359,6 @@ function App() {
         isLoading={isLoading || cambiandoAgencia}
       />
 
-
-      {/* Header */}
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -1480,113 +1478,121 @@ function App() {
           </div>
 
           <div className="relative">
-            <button
-              onClick={toggleFiltroModelo}
-              className="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-left"
-            >
-              <span className={mostrarFiltroModelo ? "font-medium" : ""}>
-                Modelo{' '}
-                {Object.values(modelosSeleccionados).filter(v => v).length > 0 && (
-                  <span className="text-xs ml-1">
-                    ({Object.values(modelosSeleccionados).filter(v => v).length} de {modelosDisponibles.length})
-                  </span>
-                )}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
+            <FormControl fullWidth size="small">
+              <InputLabel id="modelos-select-label">Modelo</InputLabel>
+              <Select
+                labelId="modelos-select-label"
+                id="modelos-select"
+                multiple
+                open={mostrarFiltroModelo} // Controlamos manualmente el estado abierto/cerrado
+                onOpen={() => setMostrarFiltroModelo(true)}
+                onClose={() => setMostrarFiltroModelo(false)}
+                value={Object.keys(modelosSeleccionados).filter(modelo => modelosSeleccionados[modelo])}
+                onChange={(event) => {
+                  const selectedValues = event.target.value as string[];
+                  const nuevoEstado = { ...modelosSeleccionados };
 
-            {mostrarFiltroModelo && (
-              <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-                style={{
-                  top: `${posicionMenu.top}px`,
-                  left: `${posicionMenu.left}px`,
-                  width: `${posicionMenu.width}px`,
+                  // Actualizar solo los modelos seleccionados
+                  Object.keys(nuevoEstado).forEach(key => {
+                    nuevoEstado[key] = selectedValues.includes(key);
+                  });
+
+                  setIsFiltering(true);
+                  setModelosSeleccionados(nuevoEstado);
+                }}
+                input={<OutlinedInput label="Modelo" />}
+                renderValue={(selected) => `${(selected as string[]).length} de ${modelosDisponibles.length}`}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 300,
+                    },
+                  },
+                  // Importante: Evitar que se cierre al hacer clic
+                  // en un elemento dentro del menú
+                  keepMounted: true
                 }}
               >
-                <div className="p-2">
-                  {modelosDisponibles.map((modelo) => (
-                    <div key={modelo} className="flex items-center justify-between py-1">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`modelo-${modelo}`}
-                          className="mr-2"
-                          checked={modelosSeleccionados[modelo]}
-                          onChange={() => handleModeloCheckbox(modelo)}
-                        />
-                        <label htmlFor={`modelo-${modelo}`} className="text-sm">
-                          {modelo}
-                        </label>
-                      </div>
-                      <button
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSolamenteModelo(modelo);
-                        }}
-                      >
-                        Solamente
-                      </button>
+                {modelosDisponibles.map((modelo) => (
+                  <MenuItem key={modelo} value={modelo} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox checked={modelosSeleccionados[modelo] === true} />
+                      <ListItemText primary={modelo} />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evitar que se propague el evento de clic
+                        handleSolamenteModelo(modelo);
+                      }}
+                    >
+                      Solamente
+                    </Button>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
 
           <div className="relative">
-            <button
-              onClick={toggleFiltroAño}
-              className="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-left"
-            >
-              <span className={mostrarFiltroAño ? "font-medium" : ""}>
-                Año modelo{' '}
-                {Object.values(añosSeleccionados).filter(v => v).length > 0 && (
-                  <span className="text-xs ml-1">
-                    ({Object.values(añosSeleccionados).filter(v => v).length})
-                  </span>
-                )}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
+            <FormControl fullWidth size="small">
+              <InputLabel id="anios-select-label">Año modelo</InputLabel>
+              <Select
+                labelId="anios-select-label"
+                id="anios-select"
+                multiple
+                open={mostrarFiltroAño} // Controlamos manualmente el estado abierto/cerrado
+                onOpen={() => setMostrarFiltroAño(true)}
+                onClose={() => setMostrarFiltroAño(false)}
+                value={Object.keys(añosSeleccionados).filter(año => añosSeleccionados[año])}
+                onChange={(event) => {
+                  const selectedValues = event.target.value as string[];
+                  const nuevoEstado = { ...añosSeleccionados };
 
-            {mostrarFiltroAño && (
-              <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-                style={{
-                  top: `${posicionMenu.top}px`,
-                  left: `${posicionMenu.left}px`,
-                  width: `${posicionMenu.width}px`,
+                  // Actualizar solo los años seleccionados
+                  Object.keys(nuevoEstado).forEach(key => {
+                    nuevoEstado[key] = selectedValues.includes(key);
+                  });
+
+                  setIsFiltering(true);
+                  setAñosSeleccionados(nuevoEstado);
+                }}
+                input={<OutlinedInput label="Año modelo" />}
+                renderValue={(selected) => `${(selected as string[]).length} de ${añosDisponibles.length}`}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 300,
+                    },
+                  },
+                  // Importante: Evitar que se cierre al hacer clic
+                  // en un elemento dentro del menú
+                  keepMounted: true
                 }}
               >
-                <div className="p-2">
-                  {añosDisponibles.map((año) => (
-                    <div key={año} className="flex items-center justify-between py-1">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`año-${año}`}
-                          className="mr-2"
-                          checked={añosSeleccionados[año]}
-                          onChange={() => handleAñoCheckbox(año)}
-                        />
-                        <label htmlFor={`año-${año}`} className="text-sm">
-                          {año}
-                        </label>
-                      </div>
-                      <button
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSolamenteAño(año);
-                        }}
-                      >
-                        Solamente
-                      </button>
+                {añosDisponibles.map((año) => (
+                  <MenuItem key={año} value={año} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox checked={añosSeleccionados[año] === true} />
+                      <ListItemText primary={año} />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evitar que se propague el evento de clic
+                        handleSolamenteAño(año);
+                      }}
+                    >
+                      Solamente
+                    </Button>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
 
           <div className="relative">
@@ -1653,58 +1659,62 @@ function App() {
           </div>
 
           <div className="relative">
-            <button
-              onClick={toggleFiltroAPS}
-              className="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-left"
-            >
-              <span className={mostrarFiltroAPS ? "font-medium" : ""}>
-                APS{' '}
-                {Object.values(apsSeleccionados).filter(v => v).length > 0 && (
-                  <span className="text-xs ml-1">
-                    ({Object.values(apsSeleccionados).filter(v => v).length})
-                  </span>
-                )}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
+            <FormControl fullWidth size="small">
+              <InputLabel id="aps-select-label">APS</InputLabel>
+              <Select
+                labelId="aps-select-label"
+                id="aps-select"
+                multiple
+                open={mostrarFiltroAPS} // Controlamos manualmente el estado abierto/cerrado
+                onOpen={() => setMostrarFiltroAPS(true)}
+                onClose={() => setMostrarFiltroAPS(false)}
+                value={Object.keys(apsSeleccionados).filter(aps => apsSeleccionados[aps])}
+                onChange={(event) => {
+                  const selectedValues = event.target.value as string[];
+                  const nuevoEstado = { ...apsSeleccionados };
 
-            {mostrarFiltroAPS && (
-              <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-                style={{
-                  top: `${posicionMenu.top}px`,
-                  left: `${posicionMenu.left}px`,
-                  width: `${posicionMenu.width}px`,
+                  // Actualizar solo los APS seleccionados
+                  Object.keys(nuevoEstado).forEach(key => {
+                    nuevoEstado[key] = selectedValues.includes(key);
+                  });
+
+                  setIsFiltering(true);
+                  setAPSSeleccionados(nuevoEstado);
+                }}
+                input={<OutlinedInput label="APS" />}
+                renderValue={(selected) => `${(selected as string[]).length} de ${asesoresDisponibles.length}`}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 300,
+                    },
+                  },
+                  // Importante: Evitar que se cierre al hacer clic
+                  // en un elemento dentro del menú
+                  keepMounted: true
                 }}
               >
-                <div className="p-2">
-                  {asesoresDisponibles.map((aps) => (
-                    <div key={aps} className="flex items-center justify-between py-1">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`aps-${aps}`}
-                          className="mr-2"
-                          checked={apsSeleccionados[aps]}
-                          onChange={() => handleAPSCheckbox(aps)}
-                        />
-                        <label htmlFor={`aps-${aps}`} className="text-sm">
-                          {aps}
-                        </label>
-                      </div>
-                      <button
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSolamenteAPS(aps);
-                        }}
-                      >
-                        Solamente
-                      </button>
+                {asesoresDisponibles.map((aps) => (
+                  <MenuItem key={aps} value={aps} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox checked={apsSeleccionados[aps] === true} />
+                      <ListItemText primary={aps} />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evitar que se propague el evento de clic
+                        handleSolamenteAPS(aps);
+                      }}
+                    >
+                      Solamente
+                    </Button>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
           <div className="relative">
             <button
