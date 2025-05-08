@@ -793,16 +793,21 @@ function App() {
 
       // Filtro por paquete - VERSIÓN CORREGIDA
       if (hayFiltroPaquete) {
-        // Verificar si el cliente tiene un paquete asignado
-        if (cliente.paquete) {
-          // Si tiene paquete, debe ser uno de los seleccionados
-          if (!paquetesSeleccionados[cliente.paquete]) {
+        // Si un cliente no tiene paquete y hay algún filtro activo, 
+        // necesitamos verificar si "null" o "" están seleccionados
+        if (!cliente.paquete || cliente.paquete === 'null' || cliente.paquete === '') {
+          // Si no hay una opción "Sin paquete" explícita seleccionada, rechazar este registro
+          const sinPaqueteSeleccionado = paquetesSeleccionados['null'] || paquetesSeleccionados[''];
+          if (!sinPaqueteSeleccionado) {
             rechazadosPorPaquete++;
             return false;
           }
-        } 
-        // No rechazamos registros sin paquete - los incluimos en los resultados
-        // Así, cuando seleccionas un paquete específico, también obtendrás registros sin paquete
+        }
+        // Si tiene paquete, verificar si está entre los seleccionados
+        else if (!paquetesSeleccionados[cliente.paquete]) {
+          rechazadosPorPaquete++;
+          return false;
+        }
       }
 
       // Filtro por APS - optimizado
