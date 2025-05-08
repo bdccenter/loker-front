@@ -86,7 +86,10 @@ async function performUpdate() {
 // Programar la tarea para ejecutarse todos los días a las 9:00 AM
 // Formato cron: minuto hora dia-mes mes dia-semana
 // 0 9 * * * = a las 9:00 AM todos los días
-cron.schedule('0 9 * * *', performUpdate);
+cron.schedule('0 9 * * *', performUpdate, {
+  scheduled: true,
+  timezone: "America/Hermosillo" // Para Sonora, que no usa horario de verano
+});
 
 logMessage('🚀 Servicio de actualización de CSV de retención iniciado');
 logMessage('📅 Programado para ejecutarse todos los días a las 9:00 AM');
@@ -101,6 +104,7 @@ performUpdate()
     logMessage(`   - Fallidas: ${results.failureCount}`);
     logMessage('El servicio continuará ejecutándose diariamente a las 9:00 AM.');
   })
+  // Si hay un error en la actualización inicial, se maneja aquí
   .catch(error => {
     logMessage(`❌ Error en actualización inicial: ${error.message}`);
     logMessage('El servicio continuará intentando actualizaciones diarias a las 9:00 AM.');
@@ -115,6 +119,7 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
+// Manejar señales de terminación
 process.on('SIGTERM', () => {
   logMessage('Servicio de actualización de CSV de retención detenido por el sistema');
   process.exit(0);
