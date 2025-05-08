@@ -49,15 +49,28 @@ const ExportCSVButton: React.FC<ExportCSVButtonProps> = ({
     };
 
     // Preparar los datos para exportación según el formato requerido
+    // Preparar los datos para exportación según el formato requerido
     const prepareDataForExport = (data: Array<any>): Array<any> => {
         // Limitar a máximo la cantidad de filas especificada
         const limitedData = data.slice(0, maxRows);
 
         return limitedData.map(row => {
+            // Formatear la fecha de última visita al formato DD/MM/YYYY
+            let ultimaVisitaFormateada = '';
+            if (row.ultimaVisita && row.ultimaVisita instanceof Date) {
+                const dia = row.ultimaVisita.getDate().toString().padStart(2, '0');
+                const mes = (row.ultimaVisita.getMonth() + 1).toString().padStart(2, '0');
+                const anio = row.ultimaVisita.getFullYear();
+                ultimaVisitaFormateada = `${dia}/${mes}/${anio}`;
+            }
+
+            // Calcular período de inactividad en días (mostrar días sin venir)
+            const periodoInactividad = row.diasSinVenir ? row.diasSinVenir.toString() : '';
+
             // Crear un nuevo objeto con los campos en el formato solicitado
             return {
-                name: row.nombreFactura || '', // Cambiado de row.contacto a row.nombreFactura
-                phone: getFirstAvailablePhone(row), // Ahora devolverá solo el número limpio
+                name: row.nombreFactura || '',
+                phone: getFirstAvailablePhone(row),
                 email: '',
                 email2: '',
                 title: '',
@@ -72,12 +85,11 @@ const ExportCSVButton: React.FC<ExportCSVButtonProps> = ({
                 AGENCIA: row.agencia || '',
                 VIN: row.serie || '',
                 MODELO: row.modelo || '',
-                'AÃƒâ€˜O DEL VIN': row.año ? row.año.toString() : '',
-                'COLOR DEL VEHICULO': '',
-                'ULTIMA VISITA': '',
-                PERIODO: '',
-                ASESOR: ''
-                // No incluimos CADENA como se solicitó
+                'AÃ\'O DEL VIN': row.año ? row.año.toString() : '',
+                'ULTIMO SERVICIO': row.paquete || '',
+                'ULTIMA VISITA': ultimaVisitaFormateada,
+                'PERIODO DE INACTIVIDAD': periodoInactividad,
+                ASESOR: row.aps || ''
             };
         });
     };
@@ -92,10 +104,10 @@ const ExportCSVButton: React.FC<ExportCSVButtonProps> = ({
         a.setAttribute('href', url);
         a.setAttribute('download', `${filename}.csv`);
         document.body.appendChild(a);
-        
+
         // Trigger the download
         a.click();
-        
+
         // Clean up
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
@@ -126,16 +138,16 @@ const ExportCSVButton: React.FC<ExportCSVButtonProps> = ({
             setIsExporting(false);
         }
     };
-    
+
     // Botón con estilo Material UI, mismo color que Panel Admin
     return (
-        <Button 
-            variant="contained" 
+        <Button
+            variant="contained"
             onClick={handleExport}
             disabled={disabled || isExporting || tableData.length === 0}
             size="small"
-            sx={{ 
-                backgroundColor: '#1976d2', 
+            sx={{
+                backgroundColor: '#1976d2',
                 '&:hover': { backgroundColor: '#1565c0' },
                 textTransform: 'none',
                 fontSize: '0.875rem',

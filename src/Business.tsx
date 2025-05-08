@@ -511,21 +511,26 @@ function App() {
         .filter(dias => !isNaN(dias) && isFinite(dias) && dias > 0);
 
       if (diasSinVenirArray.length > 0) {
+        const minDias = Math.min(...diasSinVenirArray);
         const maxDias = Math.max(...diasSinVenirArray);
-        // Si encontramos un valor máximo válido, actualizamos el estado
+        // Si encontramos valores válidos, actualizamos los estados
         if (maxDias > 0 && isFinite(maxDias)) {
+          console.log(`Valor mínimo de días sin venir encontrado: ${minDias}`);
           console.log(`Valor máximo de días sin venir encontrado: ${maxDias}`);
-          // Establecer un valor máximo seguro (original + 1000)
-          const maxSeguro = maxDias + 1000;
 
-          // Actualizamos el valor máximo calculado
-          setMaxDiasSinVenirCalculado(maxSeguro);
-          // Si el valor actual de maxDiasSinVisita es el valor por defecto,
-          // o es menor que el máximo, actualizarlo
-          if (maxDiasSinVisita <= 4800 || maxDiasSinVisita < maxSeguro) {
-            setMaxDiasSinVisita(maxSeguro);
-            console.log(`Actualizando maxDiasSinVisita a ${maxSeguro}`);
+          // Usamos exactamente el valor máximo encontrado
+          setMaxDiasSinVenirCalculado(maxDias);
+
+          // Actualizamos los valores de los filtros
+          if (minDiasSinVisita === 0) {
+            setMinDiasSinVisita(minDias);
           }
+
+          if (maxDiasSinVisita === 10000 || maxDiasSinVisita === 4800) {
+            setMaxDiasSinVisita(maxDias);
+          }
+
+          console.log(`Actualizando filtro a rango ${minDias}-${maxDias}`);
         }
       } else {
         console.warn("No se encontraron valores válidos para diasSinVenir en los datos");

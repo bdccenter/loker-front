@@ -152,7 +152,7 @@ const DiasSinVisitaRangeSlider: React.FC<DiasSinVisitaRangeSliderProps> = ({
       {/* Tooltip informativo */}
       {showMaxInfo && (
         <div className="absolute -top-10 left-0 bg-gray-800 text-white text-xs rounded py-1 px-2 z-10">
-          Rango máximo calculado: 0 a {absoluteMax} días
+          Rango actual: {absoluteMin} a {absoluteMax} días
         </div>
       )}
 
