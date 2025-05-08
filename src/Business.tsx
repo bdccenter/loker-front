@@ -791,10 +791,14 @@ function App() {
         return false;
       }
 
-      // Filtro por paquete - optimizado
-      if (hayFiltroPaquete && cliente.paquete && !paquetesSeleccionados[cliente.paquete]) {
-        rechazadosPorPaquete++;
-        return false;
+      // Filtro por paquete - VERSIÓN CORREGIDA
+      if (hayFiltroPaquete) {
+        // Si hay un filtro activo para paquetes, solo mostrar registros con paquetes seleccionados
+        // Esto filtrará los registros sin paquete (null/undefined/vacío) cuando hay filtros activos
+        if (!cliente.paquete || !paquetesSeleccionados[cliente.paquete]) {
+          rechazadosPorPaquete++;
+          return false;
+        }
       }
 
       // Filtro por APS - optimizado
@@ -905,14 +909,7 @@ function App() {
     return filteredData.slice(indexOfFirstItem, Math.min(indexOfLastItem, filteredData.length));
   };
 
-  // Función para manejar los cambios en los checkboxes de paquete
-  const handlePaqueteCheckbox = (paquete: string) => {
-    setIsFiltering(true);
-    setPaquetesSeleccionados(prev => ({
-      ...prev,
-      [paquete]: !prev[paquete]
-    }));
-  };
+
 
   // Manejador para checkboxes de APS
   const handleAPSCheckbox = (aps: string) => {
@@ -934,16 +931,6 @@ function App() {
   };
 
   // Manejador para seleccionar solamente un paquete
-  const handleSolamentePaquete = (paquete: string) => {
-    setIsFiltering(true);
-    const nuevosPaquetes: PaquetesType = {};
-    Object.keys(paquetesSeleccionados).forEach(key => {
-      nuevosPaquetes[key] = key === paquete;
-    });
-    setPaquetesSeleccionados(nuevosPaquetes);
-  };
-
-
 
 
   // Manejador para checkboxes de modelo
@@ -1005,21 +992,7 @@ function App() {
   };
 
   // Función para mostrar/ocultar el filtro de paquetes
-  const toggleFiltroPaquete = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const botonRect = e.currentTarget.getBoundingClientRect();
 
-    // Calcular la posición óptima para el menú
-    setPosicionMenu({
-      top: botonRect.bottom + window.scrollY,
-      left: botonRect.left + window.scrollX,
-      width: botonRect.width
-    });
-
-    // Cerrar otros filtros si están abiertos
-    cerrarTodosFiltros();
-
-    setMostrarFiltroPaquete(!mostrarFiltroPaquete);
-  };
 
   // Función para mostrar/ocultar el filtro de APS
   const toggleFiltroAPS = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -1038,7 +1011,6 @@ function App() {
     setMostrarFiltroAPS(!mostrarFiltroAPS);
   };
 
- 
 
   // Función para seleccionar solamente un modelo
   const handleSolamenteModelo = (modelo: string) => {
@@ -1609,58 +1581,66 @@ function App() {
           </div>
 
           <div className="relative">
-            <button
-              onClick={toggleFiltroPaquete}
-              className="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-left"
-            >
-              <span className={mostrarFiltroPaquete ? "font-medium" : ""}>
-                Paquete{' '}
-                {Object.values(paquetesSeleccionados).filter(v => v).length > 0 && (
-                  <span className="text-xs ml-1">
-                    ({Object.values(paquetesSeleccionados).filter(v => v).length})
-                  </span>
-                )}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
+            <FormControl fullWidth size="small">
+              <InputLabel id="paquetes-select-label">Paquete</InputLabel>
+              <Select
+                labelId="paquetes-select-label"
+                id="paquetes-select"
+                multiple
+                open={mostrarFiltroPaquete} // Controlamos manualmente el estado abierto/cerrado
+                onOpen={() => setMostrarFiltroPaquete(true)}
+                onClose={() => setMostrarFiltroPaquete(false)}
+                value={Object.keys(paquetesSeleccionados).filter(paquete => paquetesSeleccionados[paquete])}
+                onChange={(event) => {
+                  const selectedValues = event.target.value as string[];
+                  const nuevoEstado = { ...paquetesSeleccionados };
 
-            {mostrarFiltroPaquete && (
-              <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-                style={{
-                  top: `${posicionMenu.top}px`,
-                  left: `${posicionMenu.left}px`,
-                  width: `${posicionMenu.width}px`,
+                  // Actualizar solo los paquetes seleccionados
+                  Object.keys(nuevoEstado).forEach(key => {
+                    nuevoEstado[key] = selectedValues.includes(key);
+                  });
+
+                  setIsFiltering(true);
+                  setPaquetesSeleccionados(nuevoEstado);
+                }}
+                input={<OutlinedInput label="Paquete" />}
+                renderValue={(selected) => `${(selected as string[]).length} de ${paquetesDisponibles.length}`}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 300,
+                    },
+                  },
+                  // Importante: Evitar que se cierre al hacer clic
+                  // en un elemento dentro del menú
+                  keepMounted: true
                 }}
               >
-                <div className="p-2">
-                  {paquetesDisponibles.map((paquete) => (
-                    <div key={paquete} className="flex items-center justify-between py-1">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`paquete-${paquete}`}
-                          className="mr-2"
-                          checked={paquetesSeleccionados[paquete]}
-                          onChange={() => handlePaqueteCheckbox(paquete)}
-                        />
-                        <label htmlFor={`paquete-${paquete}`} className="text-sm">
-                          {paquete}
-                        </label>
-                      </div>
-                      <button
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSolamentePaquete(paquete);
-                        }}
-                      >
-                        Solamente
-                      </button>
+                {paquetesDisponibles.map((paquete) => (
+                  <MenuItem key={paquete} value={paquete} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox checked={paquetesSeleccionados[paquete] === true} />
+                      <ListItemText primary={paquete} />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evitar que se propague el evento de clic
+                        const nuevoEstado = { ...paquetesSeleccionados };
+                        Object.keys(nuevoEstado).forEach(key => {
+                          nuevoEstado[key] = key === paquete;
+                        });
+                        setPaquetesSeleccionados(nuevoEstado);
+                      }}
+                    >
+                      Solamente
+                    </Button>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
 
           <div className="relative">
