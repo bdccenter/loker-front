@@ -12,6 +12,8 @@ import { AgenciaNombre } from './components/AgenciaSelector';
 import { getCurrentUser, getAccessibleAgencias } from './service/AuthService';
 import { getAgencyLogoUrl } from './utilis/AgencyLogoHelper';
 import Button from '@mui/material/Button';
+import { FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText, OutlinedInput } from '@mui/material';
+
 
 
 type AgenciasType = {
@@ -941,14 +943,8 @@ function App() {
     setPaquetesSeleccionados(nuevosPaquetes);
   };
 
-  // Función para manejar los cambios en los checkboxes de agencia
-  const handleAgenciaCheckbox = (agencia: string) => {
-    setIsFiltering(true);
-    setAgenciasSeleccionadas(prev => ({
-      ...prev,
-      [agencia]: !prev[agencia]
-    }));
-  };
+
+
 
   // Manejador para checkboxes de modelo
   const handleModeloCheckbox = (modelo: string) => {
@@ -1042,13 +1038,7 @@ function App() {
     setMostrarFiltroAPS(!mostrarFiltroAPS);
   };
 
-  const handleSolamenteAgencia = (agencia: string) => {
-    const nuevasAgencias: AgenciasType = {};
-    Object.keys(agenciasSeleccionadas).forEach(key => {
-      nuevasAgencias[key] = key === agencia;
-    });
-    setAgenciasSeleccionadas(nuevasAgencias);
-  };
+ 
 
   // Función para seleccionar solamente un modelo
   const handleSolamenteModelo = (modelo: string) => {
@@ -1068,27 +1058,7 @@ function App() {
     setAñosSeleccionados(nuevosAños);
   };
 
-  // Función para mostrar/ocultar el filtro de agencias
-  const toggleFiltroAgencia = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const botonRect = e.currentTarget.getBoundingClientRect();
 
-    // Calcular la posición óptima para el menú
-    setPosicionMenu({
-      top: botonRect.bottom + window.scrollY,
-      left: botonRect.left + window.scrollX,
-      width: botonRect.width
-    });
-
-    // Cerrar otros filtros si están abiertos
-    if (mostrarFiltroModelo) {
-      setMostrarFiltroModelo(false);
-    }
-    if (mostrarFiltroAño) {
-      setMostrarFiltroAño(false);
-    }
-
-    setMostrarFiltroAgencia(!mostrarFiltroAgencia);
-  };
 
   // Función para mostrar/ocultar el filtro de modelos
   const toggleFiltroModelo = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -1465,58 +1435,67 @@ function App() {
       <div className="bg-white px-6 py-4 space-y-4">
         <div className="grid grid-cols-8 gap-4">
           <div className="relative">
-            <button
-              onClick={toggleFiltroAgencia}
-              className="w-full flex justify-between items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-left"
-            >
-              <span className={mostrarFiltroAgencia ? "font-medium" : ""}>
-                Agencias{' '}
-                {/* Asegúrate de que esto use el número correcto de agencias disponibles */}
-                <span className="text-xs ml-1">
-                  ({Object.values(agenciasSeleccionadas).filter(v => v).length} de {agenciasDisponibles.length})
-                </span>
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
-            </button>
+            <FormControl fullWidth size="small">
+              <InputLabel id="agencias-select-label">Agencias</InputLabel>
+              <Select
+                labelId="agencias-select-label"
+                id="agencias-select"
+                multiple
+                open={mostrarFiltroAgencia} // Controlamos manualmente el estado abierto/cerrado
+                onOpen={() => setMostrarFiltroAgencia(true)}
+                onClose={() => setMostrarFiltroAgencia(false)}
+                value={Object.keys(agenciasSeleccionadas).filter(agencia => agenciasSeleccionadas[agencia])}
+                onChange={(event) => {
+                  const selectedValues = event.target.value as string[];
+                  const nuevoEstado = { ...agenciasSeleccionadas };
 
+                  // Actualizar solo las agencias seleccionadas
+                  Object.keys(nuevoEstado).forEach(key => {
+                    nuevoEstado[key] = selectedValues.includes(key);
+                  });
 
-            {mostrarFiltroAgencia && (
-              <div className="fixed z-50 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-                style={{
-                  top: `${posicionMenu.top}px`,
-                  left: `${posicionMenu.left}px`,
-                  width: `${posicionMenu.width}px`,
+                  setIsFiltering(true);
+                  setAgenciasSeleccionadas(nuevoEstado);
+                }}
+                input={<OutlinedInput label="Agencias" />}
+                renderValue={(selected) => `${(selected as string[]).length} de ${agenciasDisponibles.length}`}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 300,
+                    },
+                  },
+                  // Importante: Evitar que se cierre al hacer clic
+                  // en un elemento dentro del menú
+                  keepMounted: true
                 }}
               >
-                <div className="p-2">
-                  {agenciasDisponibles.map((agencia) => (
-                    <div key={agencia} className="flex items-center justify-between py-1">
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`agencia-${agencia}`}
-                          className="mr-2"
-                          checked={agenciasSeleccionadas[agencia] === true}
-                          onChange={() => handleAgenciaCheckbox(agencia)}
-                        />
-                        <label htmlFor={`agencia-${agencia}`} className="text-sm">
-                          {agencia}
-                        </label>
-                      </div>
-                      <button
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSolamenteAgencia(agencia);
-                        }}
-                      >
-                        Solamente
-                      </button>
+                {agenciasDisponibles.map((agencia) => (
+                  <MenuItem key={agencia} value={agencia} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <Checkbox checked={agenciasSeleccionadas[agencia] === true} />
+                      <ListItemText primary={agencia} />
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Evitar que se propague el evento de clic
+                        const nuevoEstado = { ...agenciasSeleccionadas };
+                        Object.keys(nuevoEstado).forEach(key => {
+                          nuevoEstado[key] = key === agencia;
+                        });
+                        setAgenciasSeleccionadas(nuevoEstado);
+                        // NO cerrar el menú aquí
+                      }}
+                    >
+                      Solamente
+                    </Button>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </div>
 
           <div className="relative">
@@ -1989,15 +1968,24 @@ function App() {
               onClick={resetearFiltros}
               size="small"
               sx={{
-                backgroundColor: '#1976d2', // Color gris equivalente a gray-600
-                '&:hover': { backgroundColor: '#1565c0' }, // Color hover equivalente a gray-700
+                backgroundColor: '#1976d2',
+                '&:hover': { backgroundColor: '#1565c0' },
                 textTransform: 'none',
                 fontSize: '0.875rem',
-                padding: '0.5rem 1rem'
+                padding: '0.5rem 1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}
             >
+              <img
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAACn0lEQVR4nO2ZS2sUQRSFv8SJj504iK+sowgSNBgmiX/CTUQCgoguFNdqloJmqRiNf0CREGahgqILEbMQtxpXSkCN4GjizvhI4siF01AMkUzPVJUW9AfNvGrqcrpuV9U9BQUFBQU56QAOAqPAJPAaqAE/gF/AV2AGqAIXgArQSSReAM/XaLMTuAx8BOo5rw/AGNAdWkhd12psAa4DP51274Bx4BjQC2wDNgJdQBnYDxwFbgBvnf9ZHxNqE1XIMDCv31aUShWlVx4GgFvAkvqaB44QQUiX7mb2/RNgj4c4PcBDp18bnRKBhFiK3NNne4BPtTACa3EC+KYY94FNvoXY3Xmg9zWlUSj6FCMTU/Ip5JpevwD7CE+PI8ZSuW3cqdLSqZ949AGLim2TizchZ4jPScX+rOm+ZZpd2KYJxyPFsPUpuJBnhGM3sKzU3kXi3NYNs61Q0gxKyBywjoTpAGYlJubMGYSbEnKexBmRkCkS54CEvCRxtjrbJK+VYWw2OFulpsmqvvX8X0znXXwXJCRY6RmLGQmxGjtpqhJiRkHSjPosav4lFQl5E6Auj0on8F5izLJJmjEJMd8pabq1nizJDAi5NjRbwLXMhDow8yxpIWXHGjXzLDZnfQlBXmxdDqBZNLEYaDDI2xbiplgt8POS0etsk674FFKSfZmJCTkyQ/KxLNZd1ejehCBDOROzKPPMJ7bwnnbSqersvr0KyUbGPVZ4LN+pXfYCT9Xnb+Bqg3ntXUjGsDP8y/KdBnNuZ6ztId35FSdtD6/SNpgQ5MWOq2LLAs3K7RhRjV1WetjZyg6VBcc1ecw1GOQ2Cpv/EiuoEPcw9JKzN8tz2ZnjRWC778qw3Y1mv3ynKbkdC3p4vwOfgFfAHeCcRqygoKCAXPwB0TURifa7dFwAAAAASUVORK5CYII="
+                alt="update-left-rotation"
+                style={{ width: 20, height: 20 }}
+              />
               Resetear Filtros
             </Button>
+
             <Button
               variant="contained"
               size="small"

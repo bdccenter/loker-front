@@ -151,11 +151,20 @@ const ExportCSVButton: React.FC<ExportCSVButtonProps> = ({
                 '&:hover': { backgroundColor: '#1565c0' },
                 textTransform: 'none',
                 fontSize: '0.875rem',
-                padding: '0.5rem 1rem'
+                padding: '0.5rem 1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
             }}
         >
+            <img
+                src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABDElEQVR4nO2X/QqCQBDE5ylMev8XKf+KoBKij6fZEFY4xIv1Wrq15gdLgt6442x2AcTMDsARP4BorR6hkWAwkWgwkWgwkWgwkWgwkWiESESM1Rk0cnQL7lOM9QZ7g0YII6vXkAhNgEaCPU0wkWBPE0zkTxM5AbgAaAs0hjU9gINDHx8L9HrNPWMmp9HqmuHcOYKRBsBVr3sC2Bo0Nsmax8yaar/s78xMNZaa+PoWJWcm1SgxUWWvNWdm1Cg1UW3TmH6Jx8/0OPdS8O7DRSBNJq2lSYTYxk/NlJoI8X9kGKGbVluxD3hsLxotrN2IB0IjChNxRjhaCkfLGeFoKRwtZ4SjpUiwQim1GzcbeQG1AFqJ0C8cGAAAAABJRU5ErkJggg=="
+                alt="download"
+                style={{ width: 20, height: 20 }}
+            />
             {isExporting ? 'Exportando...' : 'Exportar'}
         </Button>
+
     );
 };
 
