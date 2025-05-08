@@ -51,9 +51,10 @@ function logMessage(message) {
 
 /**
  * Realiza la actualización de todos los CSV de retención
+ * @param {string} scheduleName - Nombre de la programación para logging
  */
-async function performUpdate() {
-  logMessage('Iniciando actualización programada de archivos CSV de retención desde BigQuery');
+async function performUpdate(scheduleName = 'programada') {
+  logMessage(`Iniciando actualización ${scheduleName} de archivos CSV de retención desde BigQuery`);
 
   try {
     const results = await updateAllCSVs();
@@ -63,9 +64,9 @@ async function performUpdate() {
     const failureCount = Object.values(results.details).filter(r => !r.success).length;
 
     if (successCount === results.totalAgencies) {
-      logMessage(`✅ Actualización exitosa para todas las agencias (${successCount}/${results.totalAgencies})`);
+      logMessage(`✅ Actualización ${scheduleName} exitosa para todas las agencias (${successCount}/${results.totalAgencies})`);
     } else {
-      logMessage(`⚠️ Actualización completada con advertencias: ${successCount} exitosas, ${failureCount} fallidas`);
+      logMessage(`⚠️ Actualización ${scheduleName} completada con advertencias: ${successCount} exitosas, ${failureCount} fallidas`);
 
       // Registrar detalles de fallos
       Object.values(results.details)
@@ -77,37 +78,44 @@ async function performUpdate() {
 
     return results;
   } catch (error) {
-    logMessage(`❌ Error crítico en actualización: ${error.message}`);
+    logMessage(`❌ Error crítico en actualización ${scheduleName}: ${error.message}`);
     console.error(error);
     throw error;
   }
 }
 
-// Programar la tarea para ejecutarse todos los días a las 9:00 AM
-// Formato cron: minuto hora dia-mes mes dia-semana
-// 0 9 * * * = a las 9:00 AM todos los días
-cron.schedule('0 9 * * *', performUpdate, {
+// Configuración de zona horaria común para todas las programaciones
+const cronOptions = {
   scheduled: true,
   timezone: "America/Hermosillo" // Para Sonora, que no usa horario de verano
-});
+};
+
+// Programar la tarea para ejecutarse a las 10:00 AM
+// Formato cron: minuto hora dia-mes mes dia-semana
+cron.schedule('0 10 * * *', () => performUpdate('matutina (10:00 AM)'), cronOptions);
+
+// Programar la tarea para ejecutarse a la 1:00 PM
+cron.schedule('0 13 * * *', () => performUpdate('vespertina (1:00 PM)'), cronOptions);
 
 logMessage('🚀 Servicio de actualización de CSV de retención iniciado');
-logMessage('📅 Programado para ejecutarse todos los días a las 9:00 AM');
+logMessage('📅 Programado para ejecutarse dos veces al día:');
+logMessage('   - 10:00 AM (actualización matutina)');
+logMessage('   - 1:00 PM (actualización vespertina)');
 
 // Ejecutar una actualización inmediata al iniciar el servicio
 logMessage('⏱️ Ejecutando una actualización inicial inmediata...');
-performUpdate()
+performUpdate('inicial')
   .then(results => {
     logMessage('✅ Actualización inicial completada con éxito.');
     logMessage(`   - Total agencias: ${results.totalAgencies}`);
     logMessage(`   - Actualizadas con éxito: ${results.successCount}`);
     logMessage(`   - Fallidas: ${results.failureCount}`);
-    logMessage('El servicio continuará ejecutándose diariamente a las 9:00 AM.');
+    logMessage('El servicio continuará ejecutándose según la programación establecida.');
   })
   // Si hay un error en la actualización inicial, se maneja aquí
   .catch(error => {
     logMessage(`❌ Error en actualización inicial: ${error.message}`);
-    logMessage('El servicio continuará intentando actualizaciones diarias a las 9:00 AM.');
+    logMessage('El servicio continuará intentando actualizaciones según la programación establecida.');
   });
 
 // Para mantener el proceso activo
