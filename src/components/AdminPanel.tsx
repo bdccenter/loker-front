@@ -32,12 +32,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ isOpen, onClose }) => {
 
   // Cargar datos de usuarios desde la API
   useEffect(() => {
+    // Solo cargar usuarios si el modal está abierto
     const fetchUsers = async () => {
+      // Evitar la carga si el modal no está abierto
       setIsLoading(true);
+      // Limpiar el estado de usuarios antes de cargar
       try {
+        // Llamar a la API para obtener todos los usuarios
         const usersData = await getAllUsers();
+        // Actualizar el estado de usuarios
         setUsers(usersData);
+        // Limpiar el mensaje de estado
         setStatusMessage(null);
+        // Mostrar mensaje de éxito
       } catch (error) {
         console.error('Error al cargar usuarios:', error);
         setStatusMessage({

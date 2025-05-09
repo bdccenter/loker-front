@@ -21,6 +21,7 @@
     "@emotion/styled": "^11.14.0",
     "@google-cloud/bigquery": "^7.9.4",
     "@mui/material": "^7.1.0",
+    "@mui/x-data-grid": "^8.3.0",
     "dotenv": "^16.5.0",
     "file-saver": "^2.0.5",
     "lodash": "^4.17.21",

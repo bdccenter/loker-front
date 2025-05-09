@@ -10,6 +10,9 @@
  * - encoding: codificación específica para el CSV
  */
 const agencyConfig = {
+  // Configuración para cada agencia
+  // Incluye el nombre del archivo CSV, el proyecto de BigQuery, el dataset y la tabla
+  // Además, se especifica la codificación para cada agencia
     'Gran Auto': {
       fileName: 'granauto.csv',
       projectId: 'base-maestra-gn',
@@ -45,10 +48,11 @@ const agencyConfig = {
    * @param {string} agency - Nombre de la agencia
    * @returns {string} - Consulta SQL generada
    */
+  // Esta función genera la consulta SQL para una agencia específica
   function generateQuery(agency) {
     const config = agencyConfig[agency];
     if (!config) throw new Error(`Configuración no encontrada para la agencia: ${agency}`);
-    
+    // Se construye el nombre completo de la tabla en BigQuery
     const fullTableName = `\`${config.projectId}.${config.datasetName}.${config.tableName}\``;
     
     // Consulta base para todas las agencias

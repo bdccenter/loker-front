@@ -89,6 +89,8 @@ const formatearFechaTabla = (fecha: Date): string => {
   return `${dia} ${mes} ${año}`;
 };
 
+
+
 function App() {
   // Estados para la carga de datos
   const [isFiltering, setIsFiltering] = useState<boolean>(false);
@@ -108,6 +110,8 @@ function App() {
   const [asesoresDisponibles, setAsesoresDisponibles] = useState<string[]>([]);
   const [agenciasSeleccionadas, setAgenciasSeleccionadas] = useState<AgenciasType>(() => ({}));
   const [historialBusquedas, setHistorialBusquedas] = useState<string[]>([]);
+
+  
 
   // estados de HUD de Agencias
   // Estado para la agencia seleccionada (NUEVO)
@@ -921,13 +925,7 @@ function App() {
 
 
   // Manejador para checkboxes de APS
-  const handleAPSCheckbox = (aps: string) => {
-    setIsFiltering(true);
-    setAPSSeleccionados(prev => ({
-      ...prev,
-      [aps]: !prev[aps]
-    }));
-  };
+  
 
   // Función para seleccionar solamente un APS
   const handleSolamenteAPS = (aps: string) => {
@@ -943,22 +941,7 @@ function App() {
 
 
   // Manejador para checkboxes de modelo
-  const handleModeloCheckbox = (modelo: string) => {
-    setIsFiltering(true);
-    setModelosSeleccionados(prev => ({
-      ...prev,
-      [modelo]: !prev[modelo]
-    }));
-  };
 
-  // Función para manejar los checkboxes de año modelo
-  const handleAñoCheckbox = (año: string) => {
-    setIsFiltering(true);
-    setAñosSeleccionados(prev => ({
-      ...prev,
-      [año]: !prev[año]
-    }));
-  };
 
 
   // Función para manejar cambios en el input del nombre de factura
@@ -1000,26 +983,6 @@ function App() {
     setMostrarCalendario(false);
   };
 
-  // Función para mostrar/ocultar el filtro de paquetes
-
-
-  // Función para mostrar/ocultar el filtro de APS
-  const toggleFiltroAPS = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const botonRect = e.currentTarget.getBoundingClientRect();
-
-    // Calcular la posición óptima para el menú
-    setPosicionMenu({
-      top: botonRect.bottom + window.scrollY,
-      left: botonRect.left + window.scrollX,
-      width: botonRect.width
-    });
-
-    // Cerrar otros filtros si están abiertos
-    cerrarTodosFiltros();
-
-    setMostrarFiltroAPS(!mostrarFiltroAPS);
-  };
-
 
   // Función para seleccionar solamente un modelo
   const handleSolamenteModelo = (modelo: string) => {
@@ -1042,48 +1005,8 @@ function App() {
 
 
   // Función para mostrar/ocultar el filtro de modelos
-  const toggleFiltroModelo = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const botonRect = e.currentTarget.getBoundingClientRect();
 
-    // Calcular la posición óptima para el menú
-    setPosicionMenu({
-      top: botonRect.bottom + window.scrollY,
-      left: botonRect.left + window.scrollX,
-      width: botonRect.width
-    });
-
-    // Cerrar otros filtros si están abiertos
-    if (mostrarFiltroAgencia) {
-      setMostrarFiltroAgencia(false);
-    }
-    if (mostrarFiltroAño) {
-      setMostrarFiltroAño(false);
-    }
-
-    setMostrarFiltroModelo(!mostrarFiltroModelo);
-  };
-
-  // Función para mostrar/ocultar el filtro de años
-  const toggleFiltroAño = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const botonRect = e.currentTarget.getBoundingClientRect();
-
-    // Calcular la posición óptima para el menú
-    setPosicionMenu({
-      top: botonRect.bottom + window.scrollY,
-      left: botonRect.left + window.scrollX,
-      width: botonRect.width
-    });
-
-    // Cerrar otros filtros si están abiertos
-    if (mostrarFiltroAgencia) {
-      setMostrarFiltroAgencia(false);
-    }
-    if (mostrarFiltroModelo) {
-      setMostrarFiltroModelo(false);
-    }
-
-    setMostrarFiltroAño(!mostrarFiltroAño);
-  };
+  
 
 
   // Función para mostrar/ocultar el calendario
