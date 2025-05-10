@@ -1717,7 +1717,7 @@ function App() {
                           </button>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
-                          {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((nombreMes, index) => (
+                          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((nombreMes, index) => (
                             <button
                               key={`mes-inicio-${index}`}
                               onClick={() => seleccionarMesInicio(index)}
@@ -1736,13 +1736,13 @@ function App() {
 
                     {/* Días de la semana */}
                     <div className="grid grid-cols-7 gap-1">
-                      <div className="text-center text-xs text-gray-500">Dom</div>
-                      <div className="text-center text-xs text-gray-500">Lun</div>
-                      <div className="text-center text-xs text-gray-500">Mar</div>
-                      <div className="text-center text-xs text-gray-500">Mié</div>
-                      <div className="text-center text-xs text-gray-500">Jue</div>
-                      <div className="text-center text-xs text-gray-500">Vie</div>
-                      <div className="text-center text-xs text-gray-500">Sáb</div>
+                      <div className="text-center text-xs text-gray-500">Do</div>
+                      <div className="text-center text-xs text-gray-500">Lu</div>
+                      <div className="text-center text-xs text-gray-500">Ma</div>
+                      <div className="text-center text-xs text-gray-500">Mi</div>
+                      <div className="text-center text-xs text-gray-500">Ju</div>
+                      <div className="text-center text-xs text-gray-500">Vi</div>
+                      <div className="text-center text-xs text-gray-500">Sá</div>
 
                       {renderizarDiasMes(mesInicio, true)}
                     </div>
@@ -1796,7 +1796,7 @@ function App() {
                           </button>
                         </div>
                         <div className="grid grid-cols-3 gap-2">
-                          {['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((nombreMes, index) => (
+                          {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'].map((nombreMes, index) => (
                             <button
                               key={`mes-fin-${index}`}
                               onClick={() => seleccionarMesFin(index)}
@@ -1815,13 +1815,13 @@ function App() {
 
                     {/* Días de la semana */}
                     <div className="grid grid-cols-7 gap-1">
-                      <div className="text-center text-xs text-gray-500">Dom</div>
-                      <div className="text-center text-xs text-gray-500">Lun</div>
-                      <div className="text-center text-xs text-gray-500">Mar</div>
-                      <div className="text-center text-xs text-gray-500">Mié</div>
-                      <div className="text-center text-xs text-gray-500">Jue</div>
-                      <div className="text-center text-xs text-gray-500">Vie</div>
-                      <div className="text-center text-xs text-gray-500">Sáb</div>
+                      <div className="text-center text-xs text-gray-500">Do</div>
+                      <div className="text-center text-xs text-gray-500">Lu</div>
+                      <div className="text-center text-xs text-gray-500">Ma</div>
+                      <div className="text-center text-xs text-gray-500">Mi</div>
+                      <div className="text-center text-xs text-gray-500">Ju</div>
+                      <div className="text-center text-xs text-gray-500">Vi</div>
+                      <div className="text-center text-xs text-gray-500">Sá</div>
 
                       {renderizarDiasMes(mesFin, false)}
                     </div>

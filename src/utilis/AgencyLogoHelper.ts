@@ -6,7 +6,7 @@ const agencyLogoMap: Record<AgenciaNombre, string> = {
   'Gran Auto': 'https://i.imgur.com/AdAUsQY.jpeg',
   'Gasme': 'https://i.imgur.com/i4ISsqp.jpeg',
   'Sierra': 'https://i.imgur.com/B7xvLr6.jpeg',
-  'Huerpel': 'https://i.imgur.com/J2ZgM6v.jpeg',
+  'Huerpel': 'https://imgur.com/7SnDJ1r.jpeg',
   'Del Bravo': 'https://i.imgur.com/kQzzgUg.jpeg'
 };
   
