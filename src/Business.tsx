@@ -15,7 +15,7 @@ import Button from '@mui/material/Button';
 import { FormControl, InputLabel, Select, MenuItem, Checkbox, ListItemText, OutlinedInput } from '@mui/material';
 
 
-
+// Definición de tipos
 type AgenciasType = {
   [key: string]: boolean;
 };
@@ -28,6 +28,7 @@ type APSType = {
   [key: string]: boolean;
 };
 
+// Función para formatear el número de teléfono para mostrar
 const formatearNumeroTelefonoParaMostrar = (numero?: string): string => {
   if (!numero || numero.trim() === '') {
     return '-';
@@ -79,17 +80,17 @@ const determinaCloudTalk = (cliente: Cliente): string => {
   return '-';
 };
 
+// Función para formatear la fecha a "dd mmm aaaa"
 const formatearFechaTabla = (fecha: Date): string => {
   if (!fecha || isNaN(fecha.getTime())) return "-";
-
+  // Formatear la fecha a "dd mmm aaaa"
   const dia = fecha.getDate();
   const mes = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][fecha.getMonth()];
   const año = fecha.getFullYear();
 
   return `${dia} ${mes} ${año}`;
 };
-
-
+// Función para formatear la fecha a "dd/mm/aaaa"
 
 function App() {
   // Estados para la carga de datos
@@ -110,8 +111,6 @@ function App() {
   const [asesoresDisponibles, setAsesoresDisponibles] = useState<string[]>([]);
   const [agenciasSeleccionadas, setAgenciasSeleccionadas] = useState<AgenciasType>(() => ({}));
   const [historialBusquedas, setHistorialBusquedas] = useState<string[]>([]);
-
-  
 
   // estados de HUD de Agencias
   // Estado para la agencia seleccionada (NUEVO)
@@ -139,38 +138,40 @@ function App() {
     return 'Gran Auto';
   });
 
+  // Estado para la agencia seleccionada (NUEVO)
   const [cambiandoAgencia, setCambiandoAgencia] = useState<boolean>(false);
   // estados de boton siguiente y anterior
   const [currentPage, setCurrentPage] = useState<number>(1);
+  // Estado para el número de página actual
   const itemsPerPage = 700;
-
+  // Número de elementos por página
   const [cargandoPagina, setCargandoPagina] = useState<boolean>(false);
+  // Estado para el número de elementos por página
   const [totalRegistros, setTotalRegistros] = useState<number>(0);
   // Por estas correctas:
   const [minDiasSinVisita, setMinDiasSinVisita] = useState<number>(0);
+  // Estado para el mínimo de días sin visita
   const [maxDiasSinVisita, setMaxDiasSinVisita] = useState<number>(10000); // Aumentado para incluir todos los registros
+  // Estado para el máximo de días sin visita
   const [maxDiasSinVenirCalculado, setMaxDiasSinVenirCalculado] = useState<number>(10000); // También aumentado
-
-
   // Agregar estos estados junto a los demás estados al inicio de la función App()
   const [filtroNombreFactura, setFiltroNombreFactura] = useState<string>('');
+  // Estado para el filtro de nombre de factura
   const [filtroCelular, setFiltroCelular] = useState<string>('');
   // estados de la base de datos .CSV 
   const [clientesData, setClientesData] = useState<Cliente[]>([]);
   // Estados para el calendario
-  const [mostrarCalendario, setMostrarCalendario] = useState<boolean>(false);
-  const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
-  const [fechaFin, setFechaFin] = useState<Date | null>(null);
-  const [mesInicio, setMesInicio] = useState<Date>(new Date());
-  const [mesFin, setMesFin] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth() + 2, 1));
-  const [seleccionandoInicio, setSeleccionandoInicio] = useState<boolean>(true);
-  const [mostrarSelectorMesInicio, setMostrarSelectorMesInicio] = useState<boolean>(false);
-  const [mostrarSelectorMesFin, setMostrarSelectorMesFin] = useState<boolean>(false);
-  const [selectorAñoInicio, setSelectorAñoInicio] = useState<number>(new Date().getFullYear());
-  const [selectorAñoFin, setSelectorAñoFin] = useState<number>(new Date().getFullYear());
-  const [todosLosDatosCargados, setTodosLosDatosCargados] = useState<boolean>(false);
-
-
+  const [mostrarCalendario, setMostrarCalendario] = useState<boolean>(false); // Estado para mostrar/ocultar el calendario
+  const [fechaInicio, setFechaInicio] = useState<Date | null>(null); // Estado para la fecha de inicio
+  const [fechaFin, setFechaFin] = useState<Date | null>(null); // Estado para la fecha de fin
+  const [mesInicio, setMesInicio] = useState<Date>(new Date()); // Estado para el mes de inicio
+  const [mesFin, setMesFin] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth() + 2, 1)); // Estado para el mes de fin
+  const [seleccionandoInicio, setSeleccionandoInicio] = useState<boolean>(true); // Estado para determinar si se está seleccionando la fecha de inicio
+  const [mostrarSelectorMesInicio, setMostrarSelectorMesInicio] = useState<boolean>(false); // Estado para mostrar/ocultar el selector de mes de inicio
+  const [mostrarSelectorMesFin, setMostrarSelectorMesFin] = useState<boolean>(false); // Estado para mostrar/ocultar el selector de mes de fin
+  const [selectorAñoInicio, setSelectorAñoInicio] = useState<number>(new Date().getFullYear()); // Estado para el año de inicio
+  const [selectorAñoFin, setSelectorAñoFin] = useState<number>(new Date().getFullYear()); // Estado para el año de fin
+  const [todosLosDatosCargados, setTodosLosDatosCargados] = useState<boolean>(false); // Estado para indicar si todos los datos han sido cargados
 
 
   // Manejador para cambiar de agencia
@@ -223,17 +224,17 @@ function App() {
       });
 
       // Guardamos todos los datos ordenados en el estado
-      setClientesData(datosOrdenados);
-      setTotalRegistros(resultado.total);
-      setTodosLosDatosCargados(true);
+      setClientesData(datosOrdenados); // Actualizamos el estado con los datos ordenados
+      setTotalRegistros(resultado.total); // Actualizamos el total de registros
+      setTodosLosDatosCargados(true); // Marcamos que todos los datos han sido cargados
 
       // Actualizar filtros con todos los datos disponibles
-      if (datosOrdenados.length > 0) {
+      if (datosOrdenados.length > 0) { // Asegurarse de que hay datos
         // Extraer agencias únicas
-        const agencias = Array.from(new Set(datosOrdenados.map(cliente => cliente.agencia)))
-          .filter(agencia => agencia)
-          .sort();
-        setAgenciasDisponibles(agencias);
+        const agencias = Array.from(new Set(datosOrdenados.map(cliente => cliente.agencia))) // Asegurarse de que no hay undefined o ""
+          .filter(agencia => agencia) // Filtrar valores vacíos
+          .sort(); // Ordenar alfabéticamente
+        setAgenciasDisponibles(agencias); // Actualizar agencias disponibles
 
         // Inicializar los checkboxes de agencias
         const agenciasObj: AgenciasType = {};
